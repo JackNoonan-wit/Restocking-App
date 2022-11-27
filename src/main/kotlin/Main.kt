@@ -30,6 +30,7 @@ fun runMenu(){
             1 -> branchOptions()
             2 -> listOptions()
             3 -> searchOptions()
+            else -> println("Invalid option entered: ${option}")
         }
     } while (true)
 }
@@ -39,9 +40,8 @@ fun main(args: Array<String>) {
 }
 
 fun branchOptions(){
-    if (branchAPI.numberOfBranches() > 0) {
-        val option = readNextInt(
-            """
+    val option = readNextInt(
+        """
                   > ---------------------------------
                   > |   1) Add new Branch           |
                   > |   2) Remove existing Branch   |
@@ -49,14 +49,11 @@ fun branchOptions(){
                   > ---------------------------------
          > ==>> """.trimMargin(">"))
 
-        when (option) {
-            1 -> addBranch();
-            2 -> removeBranch();
-            3 -> updateBranch();
-            else -> println("Invalid option entered: " + option);
-        }
-    } else {
-        println("Option Invalid - No branches stored");
+    when (option) {
+        1 -> addBranch();
+        2 -> removeBranch();
+        3 -> updateBranch();
+        else -> println("Invalid option entered: " + option);
     }
 }
 // Branch Options functions
@@ -82,12 +79,12 @@ fun removeBranch(){
         if (branchToDelete != null) {
             println("Delete Successful! Deleted Branch: ${branchToDelete.branchName}")
         } else {
-            println("Delete Branch Successful")
+            println("Delete Failed")
         }
     }
 }
 fun updateBranch(){
-   // listBranches()
+    // listBranches()
     if (branchAPI.numberOfBranches() > 0) {
         val indexToUpdate = readNextInt("Enter the index of the note to update: ")
         if (branchAPI.isValidIndex(indexToUpdate)) {
@@ -127,7 +124,7 @@ fun listOptions(){
             else -> println("Invalid option entered: " + option);
         }
     } else {
-        println("Option Invalid - No branches stored");
+        println("Please Add at-least one(1) Branch before moving to this section");
     }
 }
 // List Options functions
@@ -156,7 +153,7 @@ fun searchOptions(){
             else -> println("Invalid option entered: " + option);
         }
     } else {
-        println("Option Invalid - No branches stored");
+        println("Please Add at-least one(1) Branch before moving to this section");
     }
 }
 //Search Options functions
