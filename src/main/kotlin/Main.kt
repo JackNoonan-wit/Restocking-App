@@ -6,6 +6,7 @@ import persistence.JSONSerializer
 
 import controllers.BranchAPI
 import models.Branch
+import models.Product
 import java.io.File
 
 
@@ -39,13 +40,18 @@ fun main(args: Array<String>) {
     runMenu()
 }
 
+
+
+// Branch Options functions-------------------------------------------------------------------------------
 fun branchOptions(){
+    listAllBranches()
     val option = readNextInt(
         """
                   > ---------------------------------
                   > |   1) Add new Branch           |
                   > |   2) Remove existing Branch   |
                   > |   3) Update existing Branch   |
+                  > |   4) Product Options          |
                   > ---------------------------------
          > ==>> """.trimMargin(">"))
 
@@ -53,12 +59,12 @@ fun branchOptions(){
         1 -> addBranch();
         2 -> removeBranch();
         3 -> updateBranch();
+        4 -> productOptions();
         else -> println("Invalid option entered: " + option);
     }
 }
-// Branch Options functions
-
 fun addBranch(){
+    listAllBranches()
     val branchName = readNextLine("Enter a name for the branch:")
     val branchLocation = readNextLine("Enter the branch location:")
     val branchManager = readNextLine("Enter the current manager:")
@@ -72,7 +78,7 @@ fun addBranch(){
     }
 }
 fun removeBranch(){
-    //listBranches()
+    listAllBranches()
     if (branchAPI.numberOfBranches() > 0) {
         val indexToDelete = readNextInt("Enter the index of the branch to delete: ")
         val branchToDelete = branchAPI.deleteBranch(indexToDelete)
@@ -86,7 +92,7 @@ fun removeBranch(){
 fun updateBranch(){
     // listBranches()
     if (branchAPI.numberOfBranches() > 0) {
-        val indexToUpdate = readNextInt("Enter the index of the note to update: ")
+        val indexToUpdate = readNextInt("Enter the index of the branch to update: ")
         if (branchAPI.isValidIndex(indexToUpdate)) {
             val branchName = readNextLine("Enter a name for the branch:")
             val branchLocation = readNextLine("Enter the branch location:")
@@ -103,13 +109,129 @@ fun updateBranch(){
         }
     }
 }
+//--------------------------------------------------------------------------------------------------------
 
 
 
 
+// Product Options functions------------------------------------------------------------------------------
+fun productOptions(){
+    val option = readNextInt(
+        """
+                  > --------------------------------------
+                  > |   1) Add new Products to Branch    |
+                  > |   2) Delete Products from Branch   |
+                  > |   3) Update existing Products      |
+                  > --------------------------------------
+         > ==>> """.trimMargin(">"))
+
+    when (option) {
+        1 -> addProductToBranch();
+        2 -> removeProductFromBranch();
+        3 -> updateProduct();
+        else -> println("Invalid option entered: " + option);
+    }
+}
+private fun addProductToBranch() {
+    val branch: Branch? = askUserToChooseBranch()
+    if (branch != null) {
+        if (branch.addProduct(Product(productName = readNextLine("\t Product Name: "),
+                amountRequired = readNextInt("\t Amount Required: "),
+                costOfOne = readNextInt("\t Cost of One(in cents): "),
+                productCategory = readNextLine("\t Product Category: "))))
+            println("Add Successful!")
+        else println("Add NOT Successful")
+    }
+}
+fun removeProductFromBranch() {
+    val branch: Branch? = askUserToChooseBranch()
+    if (branch != null) {
+        val product: Product? = askUserToChooseProduct(branch)
+        if (product != null) {
+            val isDeleted = branch.deleteProduct(product.productId)
+            if (isDeleted) {
+                println("Delete Successful!")
+            } else {
+                println("Delete NOT Successful")
+            }
+        }
+    }
+}
+private fun askUserToChooseProduct(branch: Branch): Product? {
+    if (branch.numberOfProducts() > 0) {
+        print(branch.listProducts())
+        return branch.findOne(readNextInt("\nEnter the id of the Product: "))
+    }
+    else{
+        println ("No Products for chosen Branch")
+        return null
+    }
+}
+/*fun updateProduct(){
+    val branch: Branch? = askUserToChooseBranch()
+    if (branch != null) {
+        if (branch.numberOfProducts() > 0) {
+            val indexToUpdate = readNextInt("Enter the index of the Product to update: ")
+            if (branch.isValidIndex(indexToUpdate)) {
+                val productId = readNextInt("Enter the Product's new ID:")
+                val productName = readNextLine("Enter the Product's Name:")
+                val amountRequired = readNextInt("Enter the amount required:")
+                val costOfOne = readNextInt("Enter the cost of just one of the required Product:")
+                val productCategory = readNextLine("Enter the Product's Category:")
+                //val isProductOrdered = readNextLine("Is the Product ordered? Yes / No:")
+
+                if (branch.updateProduct(indexToUpdate, Product(productId, productName,amountRequired,costOfOne,productCategory))) {
+                    println("Update Successful")
+                } else {
+                    println("Update Failed")
+                }
+            } else {
+                println("There are no products for this index number")
+            }
+        }
+    }
+}*/
+fun updateProduct() {
+    val branch: Branch? = askUserToChooseBranch()
+    if (branch != null) {
+        val product: Product? = askUserToChooseProduct(branch)
+        if (product != null) {
+            val newProductId = readNextInt("Enter the Product's new ID:")
+            val newProductName = readNextLine("Enter the Product's Name:")
+            val newAmountRequired = readNextInt("Enter the amount required:")
+            val newCostOfOne = readNextInt("Enter the cost of just one of the required Product:")
+            val newProductCategory = readNextLine("Enter the Product's Category:")
+            if (branch.updateProduct(product.productId, Product(productId = newProductId,productName=newProductName,amountRequired=newAmountRequired,costOfOne=newCostOfOne,productCategory=newProductCategory))) {
+                println("Item contents updated")
+            } else {
+                println("Item contents NOT updated")
+            }
+        } else {
+            println("Invalid Item Id")
+        }
+    }
+}
+private fun askUserToChooseBranch(): Branch? {
+    listAllBranches()
+    if (branchAPI.numberOfBranches() > 0) {
+        val branch = branchAPI.findBranch(readNextInt("\nEnter the id of the branch: "))
+        if (branch != null) {
+            if (branch.isBranchArchived) {
+                println("Branch is NOT Active, it is Archived")
+            } else {
+                return branch
+            }
+        } else {
+            println("Branch id is not valid")
+        }
+    }
+    return null
+}
+//-------------------------------------------------------------------------------------------------------
 
 
 
+// List Options functions--------------------------------------------------------------------------------
 fun listOptions(){
     if (branchAPI.numberOfBranches() > 0) {
         val option = readNextInt(
@@ -127,14 +249,16 @@ fun listOptions(){
         println("Please Add at-least one(1) Branch before moving to this section");
     }
 }
-// List Options functions
 fun listAllBranches() {
     println(branchAPI.listAllBranches())
 }
+//-------------------------------------------------------------------------------------------------------
 
 
 
 
+
+//Search Options functions-------------------------------------------------------------------------------
 fun searchOptions(){
     if (branchAPI.numberOfBranches() > 0) {
         val option = readNextInt(
@@ -156,7 +280,6 @@ fun searchOptions(){
         println("Please Add at-least one(1) Branch before moving to this section");
     }
 }
-//Search Options functions
 fun searchBranches() {
     val searchName = readNextLine("Please enter  the name you wish to search Branches using: ")
     val searchResults = branchAPI.searchByName(searchName)
@@ -184,5 +307,8 @@ fun searchBranchManager() {
         println(searchResults)
     }
 }
+//-------------------------------------------------------------------------------------------------------
+
+
 
 
