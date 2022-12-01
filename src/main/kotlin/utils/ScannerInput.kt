@@ -34,7 +34,6 @@ object ScannerInput {
             }
         } while (true)
     }
-
     /**
      * Read a double from the user.  If the entered data isn't actually a double,
      * the user is prompted again to enter the double.
